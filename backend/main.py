@@ -389,15 +389,19 @@ async def chat(
 
             # Save to Neon (fire and forget via supabase fallback)
             if user:
+                import asyncio
                 try:
-                    supabase.table("chat_logs").insert({
-                        "user_id": str(user.id),
-                        "session_id": session_id,
-                        "model": model_key,
-                        "message": message[:500],
-                        "response": final_answer[:1000],
-                        "created_at": datetime.utcnow().isoformat(),
-                    }).execute()
+                    loop = asyncio.get_event_loop()
+                    title = message[:60]
+                    loop.run_until_complete(save_session_to_neon(
+                        str(user.id), session_id, title, "chat"
+                    ))
+                    loop.run_until_complete(save_message_to_neon(
+                        session_id, str(user.id), "user", message, model_key
+                    ))
+                    loop.run_until_complete(save_message_to_neon(
+                        session_id, str(user.id), "assistant", final_answer, model_key
+                    ))
                 except Exception:
                     pass
 
