@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from supabase import create_client, Client
 import json
+import math
 import uuid
 import os
 import asyncpg
@@ -20,6 +21,20 @@ import matplotlib.pyplot as plt
 import io
 import base64
 import re
+
+# ── NaN-safe JSON helper ───────────────────────────────────────────────────────
+def clean_nan(obj):
+    """Recursively replace NaN/Inf floats with None so json.dumps never fails."""
+    if isinstance(obj, float):
+        return None if (math.isnan(obj) or math.isinf(obj)) else obj
+    if isinstance(obj, dict):
+        return {k: clean_nan(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [clean_nan(i) for i in obj]
+    return obj
+
+def safe_json_dumps(obj):
+    return json.dumps(clean_nan(obj))
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -389,19 +404,15 @@ async def chat(
 
             # Save to Neon (fire and forget via supabase fallback)
             if user:
-                import asyncio
                 try:
-                    loop = asyncio.get_event_loop()
-                    title = message[:60]
-                    loop.run_until_complete(save_session_to_neon(
-                        str(user.id), session_id, title, "chat"
-                    ))
-                    loop.run_until_complete(save_message_to_neon(
-                        session_id, str(user.id), "user", message, model_key
-                    ))
-                    loop.run_until_complete(save_message_to_neon(
-                        session_id, str(user.id), "assistant", final_answer, model_key
-                    ))
+                    supabase.table("chat_logs").insert({
+                        "user_id": str(user.id),
+                        "session_id": session_id,
+                        "model": model_key,
+                        "message": message[:500],
+                        "response": final_answer[:1000],
+                        "created_at": datetime.utcnow().isoformat(),
+                    }).execute()
                 except Exception:
                     pass
 
@@ -569,11 +580,12 @@ async def upload_csv(
                 INSERT INTO analysis_history (session_id, user_id, filename, total_rows, total_cols, analysis_result, created_at)
                 VALUES ($1, $2, $3, $4, $5, $6, NOW())
             """, uuid.UUID(session_id), str(user.id), file.filename,
-                analysis["total_rows"], analysis["total_cols"], json.dumps(analysis))
+                analysis["total_rows"], analysis["total_cols"], safe_json_dumps(analysis))
         except Exception:
             pass
     
-    return {"ok": True, "analysis": analysis}
+    from fastapi.responses import JSONResponse
+    return JSONResponse(content=json.loads(safe_json_dumps({"ok": True, "analysis": analysis})))
 
 @app.post("/data/ask")
 async def ask_data_question(
