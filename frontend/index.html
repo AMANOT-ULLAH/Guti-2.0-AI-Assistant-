@@ -299,13 +299,16 @@
 
     /* ── View Panels ────────────────────────────── */
     .view-panel {
-      display: none;
+      display: none !important;
       flex: 1;
       flex-direction: column;
       overflow: hidden;
     }
     .view-panel.active {
-      display: flex;
+      display: flex !important;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
     }
 
     /* ── Tool Tabs ──────────────────────────────── */
@@ -334,16 +337,6 @@
       background: var(--accent-soft);
       border-color: var(--border-strong);
       color: var(--accent);
-    }
-
-    /* ── Humanizer Workspace ────────────────────── */
-    .humanizer-layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      flex: 1;
-      padding: 16px;
-      overflow: hidden;
     }
 
     .tool-panel-scroll {
@@ -730,7 +723,7 @@
       </div>
 
       <!-- Humanizer Workspace -->
-      <div class="tool-workspace humanizer-layout" id="humanizer-workspace">
+      <div class="tool-workspace" id="humanizer-workspace">
         <div class="tool-panel">
           <div class="tool-panel-header">
             <span>📝 AI-Generated Text</span>
@@ -759,7 +752,7 @@
       </div>
 
       <!-- Detector Workspace -->
-      <div class="tool-workspace humanizer-layout hidden" id="detector-workspace">
+      <div class="tool-workspace hidden" id="detector-workspace">
         <div class="tool-panel">
           <div class="tool-panel-header">
             <span>📄 Text to Analyze</span>
