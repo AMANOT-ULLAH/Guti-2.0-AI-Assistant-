@@ -57,7 +57,15 @@ app = FastAPI(title="Guti 2.0 AI Platform", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://0.0.0.0:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://0.0.0.0:5500",
+        "null",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -67,30 +75,30 @@ app.add_middleware(
 MODELS = {
     "general": {
         "auto":              "openrouter/auto",
-        "gpt-oss-120b":      "openai/gpt-oss-120b:free",
-        "deepseek-v4-flash": "deepseek/deepseek-v4-flash:free",
-        "gemma-4-31b":       "google/gemma-4-31b-it:free",
+        "gpt-oss-120b":      "openai/gpt-oss-120b",
+        "deepseek-v4-flash": "deepseek/deepseek-v4-flash",
+        "gemma-4-31b":       "google/gemma-4-31b-it",
         "minimax-m2.5":      "minimax/minimax-m2.5:free",
         "nemotron-nano-12b": "nvidia/nemotron-nano-12b-v2-vl:free",
-        "gpt-oss-20b":       "openai/gpt-oss-20b:free",
+        "gpt-oss-20b":       "openai/gpt-oss-20b",
         "owl-alpha":         "openrouter/owl-alpha",
     },
     "code": {
-        "deepseek-v3":   "deepseek/deepseek-chat-v3-0324:free",
-        "qwen-2.5-72b":  "qwen/qwen-2.5-72b-instruct:free",
-        "gemma-3-27b":   "google/gemma-3-27b-it:free",
-        "qwen3-8b":      "qwen/qwen3-8b:free",
+        "deepseek-v3":   "deepseek/deepseek-chat-v3-0324",
+        "qwen-2.5-72b":  "qwen/qwen-2.5-72b-instruct",
+        "gemma-3-27b":   "google/gemma-3-27b-it",
+        "qwen3-8b":      "qwen/qwen3-8b",
     },
     "vision": {
         "llama-vision":   "meta-llama/llama-3.2-11b-vision-instruct:free",
-        "gemma-3-12b":    "google/gemma-3-12b-it:free",
+        "gemma-3-12b":    "google/gemma-3-12b-it",
         "qwen-vl":        "qwen/qwen2.5-vl-7b-instruct:free",
         "nemotron-nano":  "nvidia/nemotron-nano-12b-v2-vl:free",
     },
     "research": {
-        "qwen-2.5-72b":      "qwen/qwen-2.5-72b-instruct:free",
-        "deepseek-v4-flash": "deepseek/deepseek-v4-flash:free",
-        "gemma-4-31b":       "google/gemma-4-31b-it:free",
+        "qwen-2.5-72b":      "qwen/qwen-2.5-72b-instruct",
+        "deepseek-v4-flash": "deepseek/deepseek-v4-flash",
+        "gemma-4-31b":       "google/gemma-4-31b-it",
     },
 }
 
@@ -517,21 +525,12 @@ def safe_exec_code(code: str, df: pd.DataFrame) -> dict:
     chart_b64 = None
     error = None
     
+    import numpy as np
     safe_globals = {
-        "__builtins__": {
-            "print": print, "len": len, "range": range, "list": list,
-            "dict": dict, "str": str, "int": int, "float": float,
-            "round": round, "sum": sum, "max": max, "min": min,
-            "sorted": sorted, "enumerate": enumerate, "zip": zip,
-            "type": type, "isinstance": isinstance, "abs": abs,
-        },
-        "pd": pd, "plt": plt, "df": df,
+        "__builtins__": __builtins__,
+        "pd": pd, "plt": plt, "df": df, "np": np,
+        "io": io, "base64": base64,
     }
-    try:
-        import numpy as np
-        safe_globals["np"] = np
-    except ImportError:
-        pass
     
     try:
         exec(code, safe_globals)
