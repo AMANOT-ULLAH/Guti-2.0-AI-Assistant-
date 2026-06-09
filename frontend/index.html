@@ -1,899 +1,851 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Agent Guti — Research</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guti 2.0 — AI Platform</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Hind+Siliguri:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/chat.css">
+
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
-    :root {
-      --font: 'Inter', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-    }
-
-    [data-theme="dark"] {
-      --bg:      #080c10;
-      --bg2:     #0d1117;
-      --bg3:     #131b24;
-      --bg4:     #1a2535;
-      --border:  #1e2d3d;
-      --border2: #243447;
-      --txt:     #cdd9e5;
-      --txt2:    #768da0;
-      --txt3:    #4a6175;
-      --accent:  #58a6ff;
-      --accent2: #1f6feb;
-      --green:   #3fb950;
-      --red:     #f85149;
-      --yellow:  #d29922;
-      --purple:  #bc8cff;
-      --shadow:  rgba(0,0,0,0.5);
-    }
-
-    [data-theme="light"] {
-      --bg:      #f6f8fa;
-      --bg2:     #ffffff;
-      --bg3:     #f0f3f6;
-      --bg4:     #e6eaf0;
-      --border:  #d0d7de;
-      --border2: #b8c0cc;
-      --txt:     #1f2328;
-      --txt2:    #57606a;
-      --txt3:    #8c959f;
-      --accent:  #0969da;
-      --accent2: #1f6feb;
-      --green:   #1a7f37;
-      --red:     #cf222e;
-      --yellow:  #9a6700;
-      --purple:  #8250df;
-      --shadow:  rgba(0,0,0,0.15);
-    }
-
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--txt);
-      height: 100vh;
+    /* ── Landing Page ─────────────────────────── */
+    #landing-page {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-base);
+      z-index: 1000;
+      overflow-y: auto;
       display: flex;
-      overflow: hidden;
-      transition: background 0.2s, color 0.2s;
+      flex-direction: column;
     }
 
-    /* ── Auth overlay ── */
-    #auth-overlay {
-      position: fixed; inset: 0;
-      background: var(--bg);
-      z-index: 200;
+    .landing-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: rgba(7, 11, 20, 0.9);
+      backdrop-filter: blur(20px);
+      z-index: 10;
+    }
+
+    .landing-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .landing-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 0 20px rgba(79,142,247,0.4);
     }
 
-    .auth-box {
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      border-radius: 16px;
-      padding: 40px;
-      width: 380px;
-      box-shadow: 0 24px 64px var(--shadow);
+    .landing-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .auth-box .logo { text-align: center; margin-bottom: 28px; }
-    .auth-box .logo h1 { font-size: 26px; font-weight: 800; color: var(--accent); font-family: var(--font); }
-    .auth-box .logo p  { font-size: 12px; color: var(--txt3); font-family: var(--font-mono); margin-top: 4px; }
-
-    .auth-tabs { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
-    .auth-tab  { flex: 1; padding: 9px; background: none; border: none; color: var(--txt2); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .auth-tab.active { background: var(--accent2); color: #fff; }
-
-    .auth-field { margin-bottom: 14px; }
-    .auth-field label { display: block; font-size: 11px; font-family: var(--font-mono); color: var(--txt2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .auth-field input { width: 100%; padding: 10px 14px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; color: var(--txt); font-family: var(--font); font-size: 13px; outline: none; transition: border-color 0.2s; }
-    .auth-field input:focus { border-color: var(--accent); }
-
-    .auth-btn { width: 100%; padding: 11px; background: var(--accent2); border: none; border-radius: 8px; color: #fff; font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; margin-top: 4px; }
-    .auth-btn:hover { background: var(--accent); }
-
-    .auth-error { font-size: 12px; color: var(--red); font-family: var(--font-mono); margin-top: 10px; text-align: center; min-height: 16px; }
-    .auth-note  { font-size: 11px; color: var(--txt3); text-align: center; margin-top: 14px; font-family: var(--font-mono); }
-    .auth-skip  { background: none; border: 1px solid var(--border2); color: var(--txt2); font-family: var(--font-mono); font-size: 11px; padding: 7px 14px; border-radius: 6px; cursor: pointer; margin-top: 10px; width: 100%; transition: all 0.2s; }
-    .auth-skip:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ── Sidebar ── */
-    #sidebar {
-      width: 260px;
-      min-width: 180px;
-      max-width: 400px;
-      background: var(--bg2);
-      border-right: 1px solid var(--border);
+    .landing-hero {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 48px 60px;
+      text-align: center;
       position: relative;
-      transition: background 0.2s;
     }
 
-    /* Resize handle */
-    #sidebar-resize {
-      position: absolute;
-      right: -3px;
-      top: 0; bottom: 0;
-      width: 6px;
-      cursor: col-resize;
-      z-index: 10;
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--accent-soft);
+      border: 1px solid var(--border-strong);
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--accent);
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .hero-title {
+      font-size: clamp(36px, 6vw, 68px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      max-width: 800px;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      max-width: 560px;
+      line-height: 1.7;
+      font-family: var(--font-bengali);
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 64px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero-btn-primary {
+      padding: 14px 32px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-xl);
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: var(--transition);
+      box-shadow: 0 0 30px rgba(79, 142, 247, 0.4);
+    }
+    .hero-btn-primary:hover {
+      background: #6aa0ff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 40px rgba(79, 142, 247, 0.6);
+    }
+
+    .hero-btn-secondary {
+      padding: 14px 28px;
       background: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: var(--transition);
     }
-    #sidebar-resize:hover { background: var(--accent2); opacity: 0.4; }
+    .hero-btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
 
-    .sidebar-logo { padding: 16px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .sidebar-logo h2 { font-size: 15px; font-weight: 800; color: var(--accent); font-family: var(--font); }
-    .sidebar-logo span { font-size: 10px; color: var(--txt3); font-family: var(--font-mono); }
+    /* Features Grid */
+    .features-section {
+      padding: 40px 48px 80px;
+    }
 
-    .sidebar-controls { display: flex; gap: 6px; }
-    .icon-btn { background: none; border: 1px solid var(--border); border-radius: 6px; color: var(--txt2); cursor: pointer; font-size: 13px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .features-title {
+      text-align: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
 
-    .user-badge { margin: 10px 12px; padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--txt2); font-family: var(--font-mono); }
-    .user-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
-    .user-badge .email { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .logout-btn { background: none; border: none; color: var(--txt3); cursor: pointer; font-size: 13px; padding: 2px 4px; border-radius: 4px; transition: color 0.2s; }
-    .logout-btn:hover { color: var(--red); }
+    .features-subtitle {
+      text-align: center;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+    }
 
-    .section-title { padding: 10px 14px 5px; font-size: 10px; font-family: var(--font-mono); color: var(--txt3); text-transform: uppercase; letter-spacing: 1px; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
 
-    .model-list { padding: 0 8px; overflow-y: auto; flex: 1; }
-    .model-list::-webkit-scrollbar { width: 3px; }
-    .model-list::-webkit-scrollbar-thumb { background: var(--border); }
+    .feature-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      transition: var(--transition);
+    }
+    .feature-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-accent);
+    }
 
-    .model-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 7px; cursor: pointer; transition: background 0.15s; margin-bottom: 2px; border: 1px solid transparent; }
-    .model-item:hover { background: var(--bg3); }
-    .model-item.selected { background: var(--bg4); border-color: var(--border2); }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 14px;
+    }
 
-    .model-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-    .model-dot.ok   { background: var(--green); }
-    .model-dot.busy { background: var(--red); animation: blink 1s infinite; }
+    .feature-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
 
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .feature-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
 
-    .model-name { flex: 1; font-size: 11.5px; font-family: var(--font); color: var(--txt); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .model-item.selected .model-name { color: var(--accent); font-weight: 600; }
-
-    .model-tag     { font-size: 9px; font-family: var(--font-mono); padding: 2px 5px; border-radius: 3px; background: var(--bg); color: var(--txt3); border: 1px solid var(--border); flex-shrink: 0; }
-    .model-busy-tag { font-size: 9px; font-family: var(--font-mono); color: var(--red); padding: 2px 5px; border-radius: 3px; border: 1px solid var(--red); flex-shrink: 0; }
-
-    .sidebar-stats { padding: 6px 14px; display: flex; gap: 14px; }
-    .stat { font-size: 11px; font-family: var(--font-mono); color: var(--txt3); }
-    .stat strong { color: var(--txt2); }
-
-    .sidebar-bottom { padding: 10px 10px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
-    .new-chat-btn { width: 100%; padding: 8px; background: var(--bg4); border: 1px solid var(--border2); border-radius: 7px; color: var(--txt); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .new-chat-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .clear-btn { width: 100%; padding: 7px; background: none; border: 1px solid var(--border); border-radius: 7px; color: var(--txt3); font-family: var(--font-mono); font-size: 11px; cursor: pointer; transition: all 0.2s; }
-    .clear-btn:hover { border-color: var(--red); color: var(--red); }
-
-    /* ── Settings panel ── */
-    #settings-panel {
-      display: none;
+    /* Background decoration */
+    .hero-bg-orb {
       position: absolute;
-      top: 50px; left: 10px; right: 10px;
-      background: var(--bg2);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 14px;
-      z-index: 50;
-      box-shadow: 0 8px 32px var(--shadow);
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
     }
-    #settings-panel.open { display: block; }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: var(--accent);
+      top: -100px; left: -100px;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: var(--accent-2);
+      bottom: -50px; right: -50px;
+    }
 
-    .settings-title { font-size: 11px; font-family: var(--font-mono); color: var(--txt3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    /* ── Auth Modal ─────────────────────────────── */
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-md);
+      padding: 3px;
+    }
 
-    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; color: var(--txt2); font-family: var(--font); }
-    .setting-row:last-child { border-bottom: none; }
-    .setting-row span { font-weight: 500; }
+    .auth-tab {
+      flex: 1;
+      padding: 8px;
+      background: transparent;
+      border: none;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-family: var(--font-main);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .auth-tab.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-sm);
+    }
 
-    /* Toggle switch */
-    .toggle { position: relative; width: 36px; height: 20px; }
-    .toggle input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; inset: 0; background: var(--border2); border-radius: 20px; cursor: pointer; transition: 0.2s; }
-    .toggle-slider:before { content: ''; position: absolute; width: 14px; height: 14px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: 0.2s; }
-    input:checked + .toggle-slider { background: var(--accent2); }
-    input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .auth-form-group {
+      margin-bottom: 14px;
+    }
+    .auth-form-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
 
-    .settings-logout { width: 100%; margin-top: 10px; padding: 8px; background: none; border: 1px solid var(--red); border-radius: 7px; color: var(--red); font-family: var(--font); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .settings-logout:hover { background: var(--red); color: #fff; }
+    .auth-modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+    .auth-modal-sub {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
 
-    /* ── Main ── */
-    #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+    /* ── View Panels ────────────────────────────── */
+    .view-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .view-panel.active {
+      display: flex;
+    }
 
-    #topbar { padding: 11px 20px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; transition: background 0.2s; }
-    #topbar h1 { font-size: 13px; font-weight: 700; color: var(--txt2); font-family: var(--font); }
+    /* ── Tool Tabs ──────────────────────────────── */
+    .tool-tabs {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-    .active-model-badge { font-size: 11px; font-family: var(--font); padding: 3px 10px; border-radius: 5px; background: var(--bg3); color: var(--accent); border: 1px solid var(--border2); display: flex; align-items: center; gap: 6px; max-width: 220px; overflow: hidden; }
-    .active-model-dot  { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
-    #topbar-model { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tool-tab {
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-main);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .tool-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .tool-tab.active {
+      background: var(--accent-soft);
+      border-color: var(--border-strong);
+      color: var(--accent);
+    }
 
-    /* ── Messages ── */
-    #messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; scroll-behavior: smooth; }
-    #messages::-webkit-scrollbar { width: 4px; }
-    #messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+    /* ── Humanizer Workspace ────────────────────── */
+    .humanizer-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      flex: 1;
+      padding: 16px;
+      overflow: hidden;
+    }
 
-    #welcome { text-align: center; margin: auto; padding: 40px 20px; max-width: 500px; }
-    #welcome h2 { font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px; font-family: var(--font); }
-    #welcome p  { font-size: 13px; color: var(--txt2); line-height: 1.7; margin-bottom: 20px; font-family: var(--font); }
+    .tool-panel-scroll {
+      overflow-y: auto;
+    }
 
-    .suggestion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .suggestion { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 11px 13px; font-size: 12px; color: var(--txt2); cursor: pointer; text-align: left; transition: all 0.2s; font-family: var(--font); line-height: 1.5; }
-    .suggestion:hover { border-color: var(--accent); color: var(--txt); background: var(--bg3); }
-    .suggestion strong { display: block; color: var(--accent); font-size: 12px; margin-bottom: 3px; font-weight: 700; }
-
-    /* ── Message bubbles ── */
-    .msg { display: flex; gap: 12px; max-width: 860px; width: 100%; margin: 0 auto; }
-    .msg.user { flex-direction: row-reverse; }
-
-    .avatar { width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; font-family: var(--font-mono); font-weight: 600; }
-    .msg.user .avatar { background: var(--accent2); color: #fff; }
-    .msg.ai   .avatar { background: var(--bg3); border: 1px solid var(--border2); color: var(--accent); }
-
-    .bubble { padding: 12px 16px; border-radius: 10px; font-size: 14px; line-height: 1.75; max-width: calc(100% - 46px); font-family: var(--font); }
-    .msg.user .bubble { background: var(--bg3); border: 1px solid var(--border2); border-top-right-radius: 3px; }
-    .msg.ai   .bubble { background: var(--bg2); border: 1px solid var(--border); border-top-left-radius: 3px; }
-
-    .model-label { font-size: 10px; font-family: var(--font-mono); color: var(--txt3); margin-bottom: 6px; }
-
-    .bubble h1,.bubble h2,.bubble h3 { margin: 12px 0 6px; color: var(--txt); font-weight: 700; font-family: var(--font); }
-    .bubble h2 { font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
-    .bubble h3 { font-size: 14px; }
-    .bubble p  { margin: 6px 0; }
-    .bubble ul,.bubble ol { margin: 6px 0 6px 20px; }
-    .bubble li { margin: 4px 0; }
-    .bubble strong { color: var(--accent); }
-    .bubble em { color: var(--txt2); }
-    .bubble a  { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--border2); }
-    .bubble a:hover { border-bottom-color: var(--accent); }
-
-    .bubble pre { background: var(--bg); border: 1px solid var(--border2); border-radius: 6px; padding: 12px; overflow-x: auto; margin: 8px 0; font-size: 12px; font-family: var(--font-mono); }
-    .bubble code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 12px; color: var(--purple); }
-    .bubble pre code { background: none; padding: 0; color: var(--txt); }
-
-    .bubble table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 13px; font-family: var(--font); }
-    .bubble th,.bubble td { padding: 7px 12px; border: 1px solid var(--border); text-align: left; }
-    .bubble th { background: var(--bg3); color: var(--accent); font-size: 11px; }
-
-    .bubble blockquote { border-left: 3px solid var(--accent2); padding-left: 12px; color: var(--txt2); margin: 8px 0; font-style: italic; }
-
-    .rate-limit-bubble { background: color-mix(in srgb, var(--red) 10%, var(--bg2)); border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); border-radius: 10px; padding: 12px 16px; font-size: 13px; color: var(--red); font-family: var(--font); }
-    .rate-limit-bubble strong { display: block; margin-bottom: 6px; }
-    .rate-limit-bubble .switch-hint { margin-top: 8px; font-size: 11px; color: var(--txt3); }
-
-    .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
-    .typing span { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: bounce 1.2s infinite; }
-    .typing span:nth-child(2) { animation-delay: 0.2s; }
-    .typing span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,80%,100%{transform:translateY(0);opacity:.4} 40%{transform:translateY(-6px);opacity:1} }
-
-    /* ── Input area ── */
-    #input-area { padding: 12px 20px 16px; background: var(--bg); border-top: 1px solid var(--border); flex-shrink: 0; transition: background 0.2s; }
-
-    #busy-banner { display: none; padding: 7px 12px; background: color-mix(in srgb, var(--yellow) 10%, var(--bg2)); border: 1px solid color-mix(in srgb, var(--yellow) 30%, transparent); border-radius: 7px; margin-bottom: 8px; font-size: 11px; font-family: var(--font-mono); color: var(--yellow); align-items: center; gap: 8px; }
-    #busy-banner.show { display: flex; }
-
-    #input-row { display: flex; gap: 10px; align-items: flex-end; background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px; padding: 10px 12px; transition: border-color 0.2s; }
-    #input-row:focus-within { border-color: var(--accent2); }
-
-    #message-input { flex: 1; background: none; border: none; color: var(--txt); font-size: 14px; resize: none; outline: none; max-height: 130px; line-height: 1.5; font-family: var(--font); }
-    #message-input::placeholder { color: var(--txt3); }
-
-    #send-btn { background: var(--accent2); border: none; border-radius: 7px; color: #fff; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; transition: background 0.2s, transform 0.1s; }
-    #send-btn:hover   { background: var(--accent); }
-    #send-btn:active  { transform: scale(0.93); }
-    #send-btn:disabled { background: var(--border2); cursor: not-allowed; opacity: 0.5; }
-
-    #input-hint { font-size: 10.5px; font-family: var(--font-mono); color: var(--txt3); margin-top: 6px; text-align: center; }
+    /* ── Data Upload Zone ───────────────────────── */
+    #data-workspace { display: none; }
+    #data-workspace:not(.hidden) { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
   </style>
 </head>
 <body>
 
-<!-- Auth overlay -->
-<div id="auth-overlay">
-  <div class="auth-box">
-    <div class="logo">
-      <h1>⬡ Agent Guti</h1>
-      <p>// research assistant v2.0</p>
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- ════════════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════════════ -->
+<div id="landing-page">
+  <!-- Nav -->
+  <nav class="landing-nav">
+    <div class="landing-logo">
+      <div class="landing-logo-icon">⚡</div>
+      Guti 2.0
     </div>
+    <div class="landing-nav-links">
+      <button class="btn btn-ghost" onclick="showAuthModal('login')">Sign In</button>
+      <button class="btn btn-primary" onclick="showAuthModal('register')">Get Started</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div class="landing-hero bg-grid">
+    <div class="hero-bg-orb orb-1"></div>
+    <div class="hero-bg-orb orb-2"></div>
+
+    <div class="hero-badge">
+      ✦ Bangladesh's First AI Research Platform
+    </div>
+
+    <h1 class="hero-title">
+      Research. Analyze. Write.<br>
+      <span>Powered by AI.</span>
+    </h1>
+
+    <p class="hero-subtitle">
+      বাংলায় কথা বলো, ইংরেজিতে লেখো — যেভাবে চাও।<br>
+      Data analysis, research papers, AI writing tools — সব এক জায়গায়।
+    </p>
+
+    <div class="hero-buttons">
+      <button class="hero-btn-primary" onclick="enterApp()">
+        🚀 Start for Free
+      </button>
+      <button class="hero-btn-secondary" onclick="showAuthModal('login')">
+        Sign In →
+      </button>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="features-section">
+    <h2 class="features-title">Everything you need</h2>
+    <p class="features-subtitle">Built for Bangladeshi students and researchers</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(79,142,247,0.15)">💬</div>
+        <div class="feature-name">Smart Chat</div>
+        <div class="feature-desc">Bengali, English বা Banglish — যেকোনো ভাষায় AI এর সাথে কথা বলো। Web search সহ।</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(61,214,140,0.15)">📊</div>
+        <div class="feature-name">Data Analysis</div>
+        <div class="feature-desc">CSV upload করো, বাংলায় প্রশ্ন করো। AI code লিখে chart বানিয়ে দেবে।</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,106,247,0.15)">🖼</div>
+        <div class="feature-name">Image Analysis</div>
+        <div class="feature-desc">যেকোনো ছবি upload করো — AI বিস্তারিত analyze করে দেবে Bengali তে।</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(247,181,79,0.15)">✍</div>
+        <div class="feature-name">AI Humanizer</div>
+        <div class="feature-desc">AI-লেখা text কে human-like করে দেবে। Assignment এ ব্যবহার করো।</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(247,106,106,0.15)">🔍</div>
+        <div class="feature-name">AI Detector</div>
+        <div class="feature-desc">যেকোনো text AI লেখা কিনা detect করো। Score সহ বিস্তারিত analysis।</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(79,142,247,0.15)">🎙</div>
+        <div class="feature-name">Voice Input</div>
+        <div class="feature-desc">Bengali তে কথা বলো — AI বুঝে উত্তর দেবে। Hands-free experience।</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     AUTH MODAL
+════════════════════════════════════════════ -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <div class="auth-modal-title">Welcome to Guti 2.0</div>
+    <div class="auth-modal-sub">Sign in to save your history and access all features</div>
+
     <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">Login</button>
-      <button class="auth-tab" onclick="switchTab('register')">Register</button>
+      <button class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">Sign In</button>
+      <button class="auth-tab" data-tab="register" onclick="switchAuthTab('register')">Register</button>
     </div>
-    <div id="login-form">
-      <div class="auth-field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com" /></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()" /></div>
-      <button class="auth-btn" onclick="doLogin()">Sign In</button>
+
+    <!-- Login Form -->
+    <div id="auth-login-form">
+      <form onsubmit="handleLogin(event)">
+        <div class="auth-form-group">
+          <label>Email</label>
+          <input class="input" type="email" id="login-email" placeholder="you@example.com" required>
+        </div>
+        <div class="auth-form-group">
+          <label>Password</label>
+          <input class="input" type="password" id="login-password" placeholder="••••••••" required>
+        </div>
+        <button class="btn btn-primary w-full" id="login-btn" type="submit" style="margin-top:4px">
+          Sign In
+        </button>
+      </form>
+      <button class="btn btn-ghost w-full" style="margin-top:8px" onclick="enterApp()">
+        Continue without login
+      </button>
     </div>
-    <div id="register-form" style="display:none">
-      <div class="auth-field"><label>Email</label><input type="email" id="reg-email" placeholder="you@example.com" /></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 characters" onkeydown="if(event.key==='Enter') doRegister()" /></div>
-      <button class="auth-btn" onclick="doRegister()">Create Account</button>
+
+    <!-- Register Form -->
+    <div id="auth-register-form" style="display:none">
+      <form onsubmit="handleRegister(event)">
+        <div class="auth-form-group">
+          <label>Email</label>
+          <input class="input" type="email" id="reg-email" placeholder="you@example.com" required>
+        </div>
+        <div class="auth-form-group">
+          <label>Password</label>
+          <input class="input" type="password" id="reg-password" placeholder="Min 8 characters" required>
+        </div>
+        <div class="auth-form-group">
+          <label>Confirm Password</label>
+          <input class="input" type="password" id="reg-confirm" placeholder="Repeat password" required>
+        </div>
+        <button class="btn btn-primary w-full" id="register-btn" type="submit" style="margin-top:4px">
+          Create Account
+        </button>
+      </form>
     </div>
-    <div class="auth-error" id="auth-error"></div>
-    <button class="auth-skip" onclick="skipAuth()">Continue without login (limited)</button>
-    <div class="auth-note">Your chats are saved when logged in</div>
   </div>
 </div>
 
-<!-- Sidebar -->
-<div id="sidebar">
-  <div id="sidebar-resize"></div>
+<!-- ════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════ -->
+<div id="app" style="display:none">
 
-  <div class="sidebar-logo">
-    <div>
-      <h2>⬡ Agent Guti</h2>
-      <span>Research Assistant</span>
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <button id="sidebar-toggle" title="Toggle sidebar">
+      <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">⚡</div>
+        <div class="logo-text">
+          <div class="logo-name">Guti 2.0</div>
+          <div class="logo-tagline">AI Platform</div>
+        </div>
+      </div>
+      <button class="new-chat-btn" id="new-chat-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        New Chat
+      </button>
     </div>
-    <div class="sidebar-controls">
-      <button class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">🌙</button>
-      <button class="icon-btn" onclick="toggleSettings()" title="Settings">⚙</button>
+
+    <!-- Search -->
+    <div class="sidebar-search">
+      <div class="search-input-wrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input type="text" id="sidebar-search" placeholder="Search chats…">
+      </div>
     </div>
-  </div>
 
-  <!-- Settings panel -->
-  <div id="settings-panel">
-    <div class="settings-title">Settings</div>
-    <div class="setting-row">
-      <span>Dark Mode</span>
-      <label class="toggle"><input type="checkbox" id="dark-toggle" checked onchange="toggleThemeFromToggle(this)"><span class="toggle-slider"></span></label>
+    <!-- Nav -->
+    <div class="sidebar-nav">
+      <div class="nav-item active" data-section="chat">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+        Chat
+      </div>
+      <div class="nav-item" data-section="data">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+        </svg>
+        Data Analysis
+      </div>
+      <div class="nav-item" data-section="tools">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Writing Tools
+        <span class="nav-badge">2</span>
+      </div>
     </div>
-    <div class="setting-row">
-      <span>Logged in as</span>
-      <span style="font-family:var(--font-mono);font-size:10px;color:var(--txt3)" id="settings-email">—</span>
+
+    <!-- History -->
+    <div class="sidebar-history scrollable">
+      <div id="history-list"></div>
     </div>
-    <button class="settings-logout" onclick="doLogout()">⏻ Sign Out</button>
-  </div>
 
-  <div id="user-badge" class="user-badge" style="display:none">
-    <div class="dot"></div>
-    <div class="email" id="user-email">—</div>
-    <button class="logout-btn" onclick="doLogout()" title="Logout">⏻</button>
-  </div>
-
-  <div class="sidebar-stats">
-    <div class="stat">msgs <strong id="stat-msgs">0</strong></div>
-    <div class="stat">session <strong id="stat-session">—</strong></div>
-  </div>
-
-  <div class="section-title" id="history-label" style="display:none">Recent</div>
-  <div id="history-list" class="history-section"></div>
-
-    <div class="section-title">Models</div>
-  <div class="model-list" id="model-list"></div>
-
-  <div class="sidebar-bottom">
-    <button class="new-chat-btn" onclick="newChat()">＋ New Chat</button>
-    <button class="clear-btn" onclick="clearChat()">🗑 Clear conversation</button>
-  </div>
-</div>
-
-<!-- Main -->
-<div id="main">
-  <div id="topbar">
-    <h1>Research Agent</h1>
-    <div class="active-model-badge">
-      <div class="active-model-dot" id="topbar-dot"></div>
-      <span id="topbar-model">gpt-oss-120b</span>
-    </div>
-  </div>
-
-  <div id="messages">
-    <div id="welcome">
-      <h2>Agent Guti</h2>
-      <p>Research-focused AI agent. Find papers by topic, title, DOI, or abstract snippet. Also does web search, general Q&A, and more.</p>
-      <div class="suggestion-grid">
-        <div class="suggestion" onclick="sendSuggestion(this)"><strong>📄 By Topic</strong>transformer architecture papers 2024</div>
-        <div class="suggestion" onclick="sendSuggestion(this)"><strong>🔍 By Title</strong>Attention is All You Need paper link</div>
-        <div class="suggestion" onclick="sendSuggestion(this)"><strong>🆔 By DOI/ID</strong>arXiv 1706.03762 paper details</div>
-        <div class="suggestion" onclick="sendSuggestion(this)"><strong>🌐 Web Search</strong>latest AI news today</div>
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="user-profile" id="user-profile">
+        <div class="user-avatar" id="user-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="user-name">Guest</div>
+          <div class="user-plan" id="user-plan">Not logged in</div>
+        </div>
+        <button class="btn btn-ghost btn-icon btn-sm" onclick="handleLogout()" id="logout-btn"
+                data-tooltip="Logout" style="display:none">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+        </button>
       </div>
     </div>
   </div>
 
-  <div id="input-area">
-    <div id="busy-banner"><span>⏳</span><span id="busy-text">Model is busy, please wait or switch model from sidebar.</span></div>
-    <div id="input-row">
-      <textarea id="message-input" placeholder="Ask about a paper, topic, DOI… or anything" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button id="send-btn" onclick="handleSendClick()">➤</button>
+  <!-- Main Content -->
+  <div id="main-content">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="btn btn-ghost btn-icon btn-sm" id="mobile-sidebar-btn" onclick="Sidebar.toggle()">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+        <span class="topbar-title" id="topbar-title">💬 Chat</span>
+      </div>
+      <div class="topbar-right">
+        <!-- Model selector (chat only) -->
+        <div class="model-selector" id="model-selector-btn">
+          <div class="dot dot-green" id="model-status-dot"></div>
+          <span class="model-name" id="current-model-name">gpt-oss-120b</span>
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 9l-7 7-7-7"/>
+          </svg>
+          <!-- Dropdown -->
+          <div class="model-dropdown" id="model-dropdown" onclick="event.stopPropagation()"></div>
+        </div>
+      </div>
     </div>
-    <div id="input-hint">Enter to send · Shift+Enter for new line · drag sidebar edge to resize</div>
-  </div>
-</div>
+
+    <!-- ── CHAT VIEW ── -->
+    <div class="view-panel active" id="chat-view">
+      <div class="chat-messages" id="chat-messages"></div>
+
+      <!-- Input Area -->
+      <div class="chat-input-area">
+        <div class="chat-input-wrap">
+          <div class="attachment-preview" id="attachment-preview"></div>
+          <div class="input-row">
+            <!-- Attach image -->
+            <button class="btn btn-ghost btn-icon btn-sm" id="attach-btn" data-tooltip="Attach image">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+              </svg>
+            </button>
+            <input type="file" id="image-file-input" accept="image/*" style="display:none">
+
+            <textarea id="chat-input" placeholder="Message Guti 2.0… (Bengali/English/Banglish)" rows="1"></textarea>
+
+            <!-- Voice -->
+            <button class="voice-btn" id="voice-btn" data-tooltip="Voice input">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+                <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/>
+              </svg>
+            </button>
+
+            <!-- Send -->
+            <button class="send-btn" id="send-btn">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-hints">
+          <div class="input-hint-left">
+            <span><kbd>Enter</kbd> to send</span>
+            <span><kbd>Shift+Enter</kbd> new line</span>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted)">Guti 2.0 · Free AI</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DATA ANALYSIS VIEW ── -->
+    <div class="view-panel" id="data-view">
+
+      <!-- Upload Zone -->
+      <div class="data-upload-zone" id="data-upload-zone">
+        <div style="font-size:48px;margin-bottom:16px">📊</div>
+        <h3>Drop your CSV file here</h3>
+        <p style="margin-top:6px;margin-bottom:20px">or click to browse • Max 50MB • Any size dataset</p>
+        <button class="btn btn-primary">Browse Files</button>
+        <input type="file" id="csv-file-input" accept=".csv" style="display:none">
+      </div>
+
+      <!-- Workspace -->
+      <div id="data-workspace" class="hidden">
+        <!-- Stats Bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0">
+          <div class="data-stats-bar" id="data-stats-bar" style="flex:1;overflow-x:auto"></div>
+          <div style="display:flex;gap:6px;flex-shrink:0;margin-left:12px">
+            <button class="btn btn-secondary btn-sm" id="auto-insights-btn">✨ Auto Insights</button>
+            <button class="btn btn-ghost btn-sm" id="new-dataset-btn">📂 New Dataset</button>
+          </div>
+        </div>
+
+        <div class="data-main">
+          <!-- Column Sidebar -->
+          <div class="data-sidebar scrollable">
+            <div id="data-col-list"></div>
+          </div>
+
+          <!-- Chat Area -->
+          <div class="data-chat-area">
+            <div class="data-messages scrollable" id="data-messages">
+              <div style="text-align:center;padding:40px 20px;color:var(--text-muted)">
+                <div style="font-size:32px;margin-bottom:12px">💡</div>
+                <div style="font-size:14px">Click a column to analyze, or ask a question below</div>
+              </div>
+            </div>
+
+            <!-- Data Input -->
+            <div class="chat-input-area" style="border-top:1px solid var(--border)">
+              <div class="chat-input-wrap">
+                <div class="input-row">
+                  <textarea id="data-question-input"
+                    placeholder="কোন column এ সবচেয়ে বেশি missing value? / Show distribution of age…"
+                    rows="1" style="flex:1;background:transparent;border:none;outline:none;
+                                   color:var(--text-primary);font-family:var(--font-main);
+                                   font-size:14px;resize:none;max-height:80px"></textarea>
+                  <button class="send-btn" id="data-ask-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WRITING TOOLS VIEW ── -->
+    <div class="view-panel" id="tools-view">
+      <!-- Tool Tabs -->
+      <div class="tool-tabs">
+        <button class="tool-tab active" data-tab="humanizer">✨ AI Humanizer</button>
+        <button class="tool-tab" data-tab="detector">🔍 AI Detector</button>
+      </div>
+
+      <!-- Humanizer Workspace -->
+      <div class="tool-workspace humanizer-layout" id="humanizer-workspace">
+        <div class="tool-panel">
+          <div class="tool-panel-header">
+            <span>📝 AI-Generated Text</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="document.getElementById('humanize-input').value=''">Clear</button>
+            </div>
+          </div>
+          <div class="tool-panel-body">
+            <textarea class="tool-input" id="humanize-input"
+              placeholder="Paste AI-generated text here to humanize…&#10;&#10;যেকোনো AI লেখা paste করুন…"></textarea>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border)">
+            <button class="btn btn-primary w-full" id="humanize-btn">✨ Humanize</button>
+          </div>
+        </div>
+
+        <div class="tool-panel">
+          <div class="tool-panel-header">
+            <span>✅ Humanized Result</span>
+            <button class="btn btn-ghost btn-sm" id="copy-humanized-btn" disabled>Copy</button>
+          </div>
+          <div class="tool-panel-body tool-panel-scroll" id="humanize-output">
+            <span style="color:var(--text-muted);font-size:13px">Humanized text will appear here…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detector Workspace -->
+      <div class="tool-workspace humanizer-layout hidden" id="detector-workspace">
+        <div class="tool-panel">
+          <div class="tool-panel-header">
+            <span>📄 Text to Analyze</span>
+            <button class="btn btn-ghost btn-sm" onclick="document.getElementById('detect-input').value=''">Clear</button>
+          </div>
+          <div class="tool-panel-body">
+            <textarea class="tool-input" id="detect-input"
+              placeholder="Paste any text to check if it's AI-generated…&#10;&#10;যেকোনো text paste করুন…"></textarea>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border)">
+            <button class="btn btn-primary w-full" id="detect-btn">🔍 Detect AI</button>
+          </div>
+        </div>
+
+        <div class="tool-panel">
+          <div class="tool-panel-header">
+            <span>📊 Detection Result</span>
+          </div>
+          <div class="tool-panel-body tool-panel-scroll" id="detect-output">
+            <span style="color:var(--text-muted);font-size:13px">Detection result will appear here…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end main-content -->
+</div><!-- end app -->
+
+<!-- JS Modules -->
+<script src="js/app.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/sidebar.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/data.js"></script>
+<script src="js/tools.js"></script>
 
 <script>
-const BACKEND = "http://localhost:8002";
+// ── App Bootstrap ──────────────────────────────
+function enterApp() {
+  document.getElementById('landing-page').style.display = 'none';
+  document.getElementById('auth-modal').classList.remove('open');
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
 
-const MODEL_LABELS = {
-  "auto":              "Auto (best available)",
-  "nemotron-nano-12b": "Nemotron Nano 12B (fastest)",
-  "gpt-oss-120b":      "GPT-OSS 120B (most reliable)",
-  "gpt-oss-20b":       "GPT-OSS 20B (lightweight)",
-  "deepseek-v4-flash": "DeepSeek V4 Flash (1M context)",
-  "gemma-4-31b":       "Gemma 4 31B (Google)",
-  "minimax-m2.5":      "MiniMax M2.5 (strong general)",
-  "owl-alpha":         "Owl Alpha (agentic)",
+function initApp() {
+  Sidebar.init();
+  ChatView.init();
+  DataView.init();
+  ToolsView.init();
+  updateUserUI();
+
+  if (Auth.isLoggedIn()) {
+    Sidebar.loadHistory();
+    document.getElementById('logout-btn').style.display = '';
+  }
+
+  // Default to chat view
+  Sidebar.switchSection('chat');
+}
+
+// Show landing or app on load
+window.addEventListener('DOMContentLoaded', () => {
+  if (Auth.init()) {
+    // Already logged in — go straight to app
+    enterApp();
+  }
+  // else show landing page (already visible)
+
+  // Close modal on overlay click
+  document.getElementById('auth-modal')?.addEventListener('click', (e) => {
+    if (e.target === document.getElementById('auth-modal')) {
+      hideAuthModal();
+    }
+  });
+});
+
+// Override updateUserUI to show logout btn
+const _origUpdateUserUI = updateUserUI;
+window.updateUserUI = function() {
+  _origUpdateUserUI();
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.style.display = Auth.isLoggedIn() ? '' : 'none';
+  }
 };
-
-let accessToken   = localStorage.getItem("guti_token") || null;
-let currentUser   = JSON.parse(localStorage.getItem("guti_user") || "null");
-let sessionId     = null;
-let messageCount  = 0;
-let isLoading     = false;
-let selectedModel = localStorage.getItem("guti_model") || "gpt-oss-120b";
-let modelStatuses = {};
-let isDark        = localStorage.getItem("guti_theme") !== "light";
-
-// Apply theme on load
-applyTheme(isDark);
-
-// ── Theme ──────────────────────────────────────────────────────────────────────
-function applyTheme(dark) {
-  document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
-  document.getElementById("theme-btn").textContent = dark ? "🌙" : "☀️";
-  const toggle = document.getElementById("dark-toggle");
-  if (toggle) toggle.checked = dark;
-}
-
-function toggleTheme() {
-  isDark = !isDark;
-  localStorage.setItem("guti_theme", isDark ? "dark" : "light");
-  applyTheme(isDark);
-}
-
-function toggleThemeFromToggle(el) {
-  isDark = el.checked;
-  localStorage.setItem("guti_theme", isDark ? "dark" : "light");
-  applyTheme(isDark);
-}
-
-function toggleSettings() {
-  const p = document.getElementById("settings-panel");
-  p.classList.toggle("open");
-  if (p.classList.contains("open") && currentUser) {
-    document.getElementById("settings-email").textContent = currentUser.email;
-  }
-}
-
-// ── Sidebar resize ─────────────────────────────────────────────────────────────
-(function() {
-  const handle  = document.getElementById("sidebar-resize");
-  const sidebar = document.getElementById("sidebar");
-  let dragging  = false;
-  let startX, startW;
-
-  handle.addEventListener("mousedown", e => {
-    dragging = true;
-    startX   = e.clientX;
-    startW   = sidebar.offsetWidth;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-  });
-
-  document.addEventListener("mousemove", e => {
-    if (!dragging) return;
-    const w = Math.min(400, Math.max(180, startW + e.clientX - startX));
-    sidebar.style.width = w + "px";
-  });
-
-  document.addEventListener("mouseup", () => {
-    if (dragging) {
-      dragging = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    }
-  });
-})();
-
-// ── Auth ───────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll(".auth-tab").forEach((t, i) => {
-    t.classList.toggle("active", (i === 0 && tab === "login") || (i === 1 && tab === "register"));
-  });
-  document.getElementById("login-form").style.display    = tab === "login"    ? "block" : "none";
-  document.getElementById("register-form").style.display = tab === "register" ? "block" : "none";
-  document.getElementById("auth-error").textContent = "";
-}
-
-async function doLogin() {
-  const email = document.getElementById("login-email").value.trim();
-  const pass  = document.getElementById("login-pass").value;
-  if (!email || !pass) return showAuthError("Fill in all fields");
-  try {
-    const fd = new FormData();
-    fd.append("email", email); fd.append("password", pass);
-    const res  = await fetch(`${BACKEND}/auth/login`, { method: "POST", body: fd });
-    const data = await res.json();
-    if (!res.ok) return showAuthError(data.detail || "Login failed");
-    accessToken = data.access_token;
-    currentUser = data.user;
-    localStorage.setItem("guti_token", accessToken);
-    localStorage.setItem("guti_user",  JSON.stringify(currentUser));
-    closeAuth();
-  } catch { showAuthError("Cannot connect to backend"); }
-}
-
-async function doRegister() {
-  const email = document.getElementById("reg-email").value.trim();
-  const pass  = document.getElementById("reg-pass").value;
-  if (!email || !pass) return showAuthError("Fill in all fields");
-  if (pass.length < 6) return showAuthError("Password must be 6+ characters");
-  try {
-    const fd = new FormData();
-    fd.append("email", email); fd.append("password", pass);
-    const res  = await fetch(`${BACKEND}/auth/register`, { method: "POST", body: fd });
-    const data = await res.json();
-    if (!res.ok) return showAuthError(data.detail || "Registration failed");
-    showAuthError("✅ Registered! You can now log in.");
-    switchTab("login");
-  } catch { showAuthError("Cannot connect to backend"); }
-}
-
-function skipAuth() { accessToken = null; currentUser = null; closeAuth(); }
-
-async function doLogout() {
-  if (accessToken) {
-    try { await fetch(`${BACKEND}/auth/logout`, { method: "POST", headers: { Authorization: `Bearer ${accessToken}` } }); } catch {}
-  }
-  accessToken = null; currentUser = null;
-  localStorage.removeItem("guti_token"); localStorage.removeItem("guti_user");
-  document.getElementById("user-badge").style.display = "none";
-  document.getElementById("settings-panel").classList.remove("open");
-  
-  // ← এই দুই লাইন add করো:
-  document.getElementById("messages").innerHTML = "";
-  document.getElementById("history-list").innerHTML = "";
-  document.getElementById("history-label").style.display = "none";
-  
-  document.getElementById("auth-overlay").style.display = "flex";
-}
-
-function closeAuth() {
-  document.getElementById("auth-overlay").style.display = "none";
-  if (currentUser) {
-    document.getElementById("user-badge").style.display = "flex";
-    document.getElementById("user-email").textContent   = currentUser.email;
-  }
-  init();
-}
-
-function showAuthError(msg) { document.getElementById("auth-error").textContent = msg; }
-
-// ── Init ───────────────────────────────────────────────────────────────────────
-async function init() {
-  if (accessToken) {
-    try {
-      const res = await fetch(`${BACKEND}/auth/me`, { headers: { Authorization: `Bearer ${accessToken}` } });
-      if (res.ok) {
-        currentUser = await res.json();
-        localStorage.setItem("guti_user", JSON.stringify(currentUser));
-        document.getElementById("user-badge").style.display = "flex";
-        document.getElementById("user-email").textContent   = currentUser.email;
-        document.getElementById("auth-overlay").style.display = "none";
-      } else {
-        accessToken = null; localStorage.removeItem("guti_token"); return;
-      }
-    } catch { document.getElementById("auth-overlay").style.display = "none"; }
-  }
-
-  try {
-    const res  = await fetch(`${BACKEND}/session/new`);
-    const data = await res.json();
-    sessionId  = data.session_id;
-    document.getElementById("stat-session").textContent = sessionId.slice(0, 6);
-  } catch { sessionId = "local-" + Date.now(); }
-
-  loadModels();
-  renderHistory();
-}
-
-// ── Models ─────────────────────────────────────────────────────────────────────
-async function loadModels() {
-  try {
-    const res  = await fetch(`${BACKEND}/models`);
-    const data = await res.json();
-    renderModels(data.models);
-    data.models.forEach(m => { modelStatuses[m.key] = m.ok; });
-  } catch {
-    renderModels(Object.keys(MODEL_LABELS).map(k => ({ key: k, ok: true })));
-  }
-}
-
-function renderModels(models) {
-  const list = document.getElementById("model-list");
-  list.innerHTML = "";
-  models.forEach(m => {
-    const div  = document.createElement("div");
-    div.className = `model-item${m.key === selectedModel ? " selected" : ""}`;
-    div.id = `model-${m.key}`;
-    div.onclick = () => selectModel(m.key);
-
-    const dot  = document.createElement("div");
-    dot.className = `model-dot ${m.ok ? "ok" : "busy"}`;
-    dot.id = `dot-${m.key}`;
-
-    const name = document.createElement("div");
-    name.className = "model-name";
-    name.textContent = MODEL_LABELS[m.key] || m.key;
-
-    const tag  = document.createElement("div");
-    if (!m.ok) { tag.className = "model-busy-tag"; tag.textContent = "busy"; }
-    else        { tag.className = "model-tag";      tag.textContent = "free"; }
-
-    div.appendChild(dot); div.appendChild(name); div.appendChild(tag);
-    list.appendChild(div);
-  });
-  updateTopbar();
-}
-
-function selectModel(key) {
-  selectedModel = key;
-  localStorage.setItem("guti_model", key);
-  document.querySelectorAll(".model-item").forEach(el => el.classList.remove("selected"));
-  const el = document.getElementById(`model-${key}`);
-  if (el) el.classList.add("selected");
-  updateTopbar();
-  document.getElementById("busy-banner").classList.remove("show");
-  document.getElementById("settings-panel").classList.remove("open");
-}
-
-function updateTopbar() {
-  const label = MODEL_LABELS[selectedModel] || selectedModel;
-  document.getElementById("topbar-model").textContent = label;
-  const ok = modelStatuses[selectedModel] !== false;
-  document.getElementById("topbar-dot").style.background = ok ? "var(--green)" : "var(--red)";
-}
-
-function markModelBusy(key) {
-  modelStatuses[key] = false;
-  const dot = document.getElementById(`dot-${key}`);
-  if (dot) dot.className = "model-dot busy";
-  const tag = document.querySelector(`#model-${key} .model-tag, #model-${key} .model-busy-tag`);
-  if (tag) { tag.className = "model-busy-tag"; tag.textContent = "busy"; }
-  updateTopbar();
-}
-
-// ── Send ───────────────────────────────────────────────────────────────────────
-let abortController = null;
-
-function handleSendClick() {
-  if (isLoading) {
-    pauseResponse();
-  } else {
-    sendMessage();
-  }
-}
-
-let _pauseRequested = false;
-let _activeReader   = null;
-
-function pauseResponse() {
-  _pauseRequested = true;
-  if (_activeReader) { try { _activeReader.cancel(); } catch {} _activeReader = null; }
-  if (abortController) { try { abortController.abort(); } catch {} abortController = null; }
-  const btn = document.getElementById("send-btn");
-  btn.textContent = "➤";
-  btn.classList.remove("pausing");
-  btn.disabled = false;
-  isLoading = false;
-}
-
-function handleKey(e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }
-function autoResize(el) { el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 130) + "px"; }
-function sendSuggestion(el) {
-  const text = el.querySelector("strong").nextSibling?.textContent?.trim();
-  if (text) { document.getElementById("message-input").value = text; sendMessage(); }
-}
-
-async function sendMessage() {
-  const input = document.getElementById("message-input");
-  const text  = input.value.trim();
-  if (!text || isLoading) return;
-
-  isLoading = true;
-  document.getElementById("send-btn").disabled = true;
-  document.getElementById("busy-banner").classList.remove("show");
-  document.getElementById("settings-panel").classList.remove("open");
-
-  const welcome = document.getElementById("welcome");
-  if (welcome) welcome.remove();
-
-  appendMessage("user", text);
-  input.value = ""; input.style.height = "auto";
-
-  abortController = new AbortController();
-  const sendBtn = document.getElementById("send-btn");
-  sendBtn.textContent = "⏹";
-  sendBtn.classList.add("pausing");
-  const typingId = showTyping();
-
-  try {
-    const fd = new FormData();
-    fd.append("message", text); fd.append("session_id", sessionId); fd.append("model_key", selectedModel);
-    const headers = {};
-    if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-    const res = await fetch(`${BACKEND}/chat`, { method: "POST", body: fd, headers, signal: abortController?.signal });
-    removeTyping(typingId);
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      appendMessage("ai", `❌ ${err.detail || "Server error"}`);
-      isLoading = false; document.getElementById("send-btn").disabled = false; return;
-    }
-
-    const aiBubble = appendAiBubble(selectedModel);
-    _pauseRequested = false;
-    const reader   = res.body.getReader();
-    _activeReader  = reader;
-    const decoder  = new TextDecoder();
-    let   full     = ""; let isRateLimit = false;
-
-    while (true) {
-      if (_pauseRequested) break;
-      const { done, value } = await reader.read();
-      if (done) break;
-      for (const line of decoder.decode(value).split("\n")) {
-        if (!line.startsWith("data: ")) continue;
-        const payload = line.slice(6);
-        if (payload === "[DONE]") break;
-        try {
-          const obj = JSON.parse(payload);
-          if (obj.error === "rate_limit") {
-            isRateLimit = true; markModelBusy(selectedModel);
-            aiBubble.innerHTML = `<div class="rate-limit-bubble"><strong>⚠ Model Busy</strong>${obj.message || ""}<div class="switch-hint">👈 Switch to another model from the sidebar.</div></div>`;
-          } else if (obj.error) {
-            full += `\n\n❌ ${obj.message || obj.error}`; aiBubble.innerHTML = marked.parse(full);
-          } else {
-            full += obj.text || ""; aiBubble.innerHTML = marked.parse(full);
-          }
-          scrollToBottom();
-        } catch {}
-      }
-    }
-
-    if (!isRateLimit) {
-      messageCount++;
-      document.getElementById("stat-msgs").textContent = messageCount;
-      saveChatTitle(text);
-    }
-
-  } catch {
-    removeTyping(typingId);
-    appendMessage("ai", `❌ Cannot reach backend at \`${BACKEND}\`. Make sure it's running.`);
-  }
-
-  isLoading = false; _pauseRequested = false; _activeReader = null; abortController = null;
-  const sb = document.getElementById("send-btn");
-  sb.textContent = "➤"; sb.classList.remove("pausing"); sb.disabled = false;
-  input.focus();
-}
-
-// ── UI helpers ──────────────────────────────────────────────────────────────────
-function appendMessage(role, text) {
-  const msgs = document.getElementById("messages");
-  const div  = document.createElement("div"); div.className = `msg ${role}`;
-  const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = role === "user" ? "U" : "G";
-  const bubble = document.createElement("div"); bubble.className = "bubble";
-  if (text) bubble.innerHTML = marked.parse(text);
-  div.appendChild(avatar); div.appendChild(bubble); msgs.appendChild(div);
-  scrollToBottom(); return bubble;
-}
-
-function appendAiBubble(modelKey) {
-  const msgs = document.getElementById("messages");
-  const div  = document.createElement("div"); div.className = "msg ai";
-  const avatar = document.createElement("div"); avatar.className = "avatar"; avatar.textContent = "G";
-  const bubble = document.createElement("div"); bubble.className = "bubble";
-  const label  = document.createElement("div"); label.className = "model-label"; label.textContent = `[${MODEL_LABELS[modelKey] || modelKey}]`;
-  const content = document.createElement("div");
-  bubble.appendChild(label); bubble.appendChild(content);
-  div.appendChild(avatar); div.appendChild(bubble); msgs.appendChild(div);
-  scrollToBottom(); return content;
-}
-
-function showTyping() {
-  const msgs = document.getElementById("messages");
-  const div  = document.createElement("div"); div.className = "msg ai"; div.id = "typing-" + Date.now();
-  div.innerHTML = `<div class="avatar">G</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
-  msgs.appendChild(div); scrollToBottom(); return div.id;
-}
-
-function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
-function scrollToBottom() { const msgs = document.getElementById("messages"); msgs.scrollTop = msgs.scrollHeight; }
-
-async function clearChat() {
-  if (!confirm("Clear this conversation?")) return;
-  try { await fetch(`${BACKEND}/session/${sessionId}`, { method: "DELETE" }); } catch {}
-  messageCount = 0; document.getElementById("stat-msgs").textContent = 0;
-  document.getElementById("messages").innerHTML = `<div id="welcome" style="text-align:center;margin:auto;padding:40px 20px"><h2 style="color:var(--accent);font-size:20px;font-family:var(--font)">Conversation cleared</h2><p style="color:var(--txt2);font-size:13px;margin-top:8px;font-family:var(--font)">Start a new conversation below.</p></div>`;
-}
-
-async function newChat() {
-  try {
-    const res = await fetch(`${BACKEND}/session/new`);
-    const data = await res.json();
-    sessionId  = data.session_id;
-    document.getElementById("stat-session").textContent = sessionId.slice(0, 6);
-  } catch { sessionId = "local-" + Date.now(); }
-  messageCount = 0; document.getElementById("stat-msgs").textContent = 0;
-  document.getElementById("messages").innerHTML = `<div id="welcome" style="text-align:center;margin:auto;padding:40px 20px"><h2 style="color:var(--accent);font-size:20px;font-family:var(--font)">New Chat</h2><p style="color:var(--txt2);font-size:13px;margin-top:8px;font-family:var(--font)">Ask me about research papers, topics, or anything.</p></div>`;
-  loadModels();
-}
-
-
-// ── Chat History (Supabase, per-user) ──────────────────────────────────────
-function makeChatTitle(userMsg) {
-  // Smart title: topic keywords, max 4 words, strip URLs
-  return userMsg.replace(/https?:\/\/\S+/g, "").trim()
-    .split(/\s+/).filter(w => w.length > 1).slice(0, 4).join(" ") || "Chat";
-}
-
-const _savedSessions = new Set(); // track which sessions already saved
-
-async function saveChatTitle(userMsg) {
-  if (!accessToken || !currentUser) return;
-  if (_savedSessions.has(sessionId)) return; // already saved this session
-  _savedSessions.add(sessionId);
-  const title = makeChatTitle(userMsg);
-  try {
-    const fd = new FormData();
-    fd.append("title", title);
-    fd.append("session_id", sessionId);
-    await fetch(`${BACKEND}/history/save`, {
-      method: "POST", body: fd,
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    renderHistory();
-  } catch {}
-}
-
-async function renderHistory() {
-  if (!accessToken || !currentUser) return;
-  try {
-    const res  = await fetch(`${BACKEND}/history/list`, {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    const list  = document.getElementById("history-list");
-    const label = document.getElementById("history-label");
-    list.innerHTML = "";
-    if (!data.items || data.items.length === 0) { label.style.display = "none"; return; }
-    label.style.display = "block";
-    data.items.forEach(item => {
-      const div  = document.createElement("div");
-      div.className = "history-item";
-      div.title = item.title;
-      div.innerHTML = `<span class="h-icon">💬</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis">${item.title}</span>`;
-      div.onclick = () => {
-        sessionId = item.session_id;
-        document.getElementById("stat-session").textContent = sessionId.slice(0, 6);
-        messageCount = 0;
-        document.getElementById("stat-msgs").textContent = 0;
-        document.getElementById("messages").innerHTML =
-          `<div id="welcome" style="text-align:center;margin:auto;padding:40px 20px">
-            <h2 style="color:var(--accent);font-size:18px;font-family:var(--font)">${item.title}</h2>
-            <p style="color:var(--txt2);font-size:13px;margin-top:8px;font-family:var(--font)">Session resumed — continue the conversation.</p>
-          </div>`;
-      };
-      list.appendChild(div);
-    });
-  } catch {}
-}
-
-// ── Boot ───────────────────────────────────────────────────────────────────────
-if (accessToken) {
-  document.getElementById("auth-overlay").style.display = "none";
-  if (currentUser) { document.getElementById("user-badge").style.display = "flex"; document.getElementById("user-email").textContent = currentUser.email; }
-  init();
-}
 </script>
 </body>
 </html>
